@@ -24,7 +24,7 @@ type Client struct {
 	TenantID string // Tenant ID as a string
 }
 
-func (c *Client) verify(accessToken string) (jwt.MapClaims, error) {
+func (c *Client) VerifyToken(accessToken string) (jwt.MapClaims, error) {
 	jwksURL := fmt.Sprintf("https://login.microsoftonline.com/%s/discovery/v2.0/keys", c.TenantID)
 
 	// Fetch Microsoft's public key metadata (JWKS)
