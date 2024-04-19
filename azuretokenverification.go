@@ -20,12 +20,12 @@ type JWK struct {
 }
 
 type Client struct {
-	tenantID string
-	clientID string
+	ClientID string // Client ID as a string
+	TenantID string // Tenant ID as a string
 }
 
 func (c *Client) verify(accessToken string) (jwt.MapClaims, error) {
-	jwksURL := fmt.Sprintf("https://login.microsoftonline.com/%s/discovery/v2.0/keys", c.tenantID)
+	jwksURL := fmt.Sprintf("https://login.microsoftonline.com/%s/discovery/v2.0/keys", c.TenantID)
 
 	// Fetch Microsoft's public key metadata (JWKS)
 	resp, err := http.Get(jwksURL)
@@ -81,13 +81,13 @@ func (c *Client) verify(accessToken string) (jwt.MapClaims, error) {
 	if !ok {
 		return nil, fmt.Errorf("failed to cast claims to MapClaims")
 	}
-	expectedIssuer := fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", c.tenantID)
+	expectedIssuer := fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", c.TenantID)
 
 	if claims["iss"] != expectedIssuer {
 		return nil, fmt.Errorf("unexpected issuer: %s", claims["iss"])
 	}
 
-	if claims["aud"] != c.clientID {
+	if claims["aud"] != c.ClientID {
 		return nil, fmt.Errorf("unexpected audience: %s", claims["aud"])
 	}
 
