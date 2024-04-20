@@ -14,7 +14,7 @@ type JWKey struct {
 	N      string   `json:"n"`   // Modulus (for RSA)
 	E      string   `json:"e"`   // Exponent (for RSA)
 	X5c    []string `json:"x5c"` // Certificate chain
-	X5t    string   `json:"x5t"`
+	X5t    string   `json:"x5t"` // (X.509 Certificate SHA-1 Thumbprint)
 	Issuer string   `json:"issuer"`
 }
 
