@@ -32,7 +32,7 @@ func fetchJWKS(url string) (*JWKS, error) {
 
 // Use this method to Verify Access Token
 // Returns Claims if token is valid else returns error
-func (c *Client) VerifyToken(accessToken string) (jwt.MapClaims, error) {
+func (c *Client) VerifyToken(accessToken string) (*jwt.MapClaims, error) {
 	// Define the JWKS URL (e.g., for Azure AD)
 	jwksURL := fmt.Sprintf("https://login.microsoftonline.com/%s/discovery/v2.0/keys", c.TenantID)
 
@@ -75,25 +75,36 @@ func (c *Client) VerifyToken(accessToken string) (jwt.MapClaims, error) {
 	}
 
 	// Retrieve claims and verify issuer, audience, and expiration
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(*jwt.MapClaims)
 	if !ok {
 		return nil, fmt.Errorf("failed to cast claims to MapClaims")
 	}
-	expectedIssuer := fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", c.TenantID)
+	expectedIssuer := fmt.Sprintf("https://sts.windows.net/%s/", c.TenantID)
 
-	if claims["iss"] != expectedIssuer {
-		return nil, fmt.Errorf("unexpected issuer: %s", claims["iss"])
+	issuer, _ := claims.GetIssuer()
+	if issuer != expectedIssuer {
+		return nil, fmt.Errorf("unexpected issuer: %s", issuer)
 	}
 
-	if claims["aud"] != c.ClientID {
-		return nil, fmt.Errorf("unexpected audience: %s", claims["aud"])
+	audiances, _ := claims.GetAudience()
+	if !isAudiance(audiances, c.ClientID) {
+		return nil, fmt.Errorf("unexpected audience: %s", audiances)
 	}
 
-	expiration := time.Unix(int64(claims["exp"].(float64)), 0)
-	if time.Now().After(expiration) {
+	raw_expiration, _ := claims.GetExpirationTime()
+	if time.Now().After(raw_expiration.Time) {
 		return nil, fmt.Errorf("token is expired")
 	}
 
 	// Token is valid and verified
 	return claims, nil
+}
+
+func isAudiance(audiances jwt.ClaimStrings, client_id string) bool {
+	for _, audience := range audiances {
+		if audience == client_id {
+			return true
+		}
+	}
+	return false
 }
