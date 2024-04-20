@@ -10,7 +10,6 @@ The code does the following checks to determine if the token valid:
 Run the following command to add this package to your project
 ```
 go get github.com/cyberpunk-sh/azuretokenverification
-
 ```
 
 ## Example
@@ -35,7 +34,6 @@ func main() {
 	fmt.Printf("Token is valid. Claims: %+v\n", claims)
 
 }
-
 ```
 ## Support
 For Feature Requests and Bugs, Please raise an issue using [GitHub Issues](https://github.com/cyberpunk-sh/azuretokenverification/issues)
