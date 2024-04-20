@@ -37,6 +37,8 @@ func main() {
 }
 
 ```
+## Support
+For Feature Requests and Bugs, Please raise an issue using [GitHub Issues](https://github.com/cyberpunk-sh/azuretokenverification/issues)
 
 ## License
 Copyright (c) 2024 Premchand Chakkungal (https://cyberpunk.sh)
