@@ -9,40 +9,39 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type JWK struct {
-	Kid string   `json:"kid"` // Key ID
-	Kty string   `json:"kty"` // Key type (e.g., RSA)
-	Alg string   `json:"alg"` // Algorithm (e.g., RS256)
-	Use string   `json:"use"` // Usage (e.g., "sig" for signature)
-	N   string   `json:"n"`   // Modulus (for RSA)
-	E   string   `json:"e"`   // Exponent (for RSA)
-	X5c []string `json:"x5c"` // Certificate chain
-}
-
 type Client struct {
 	ClientID string // Client ID as a string
 	TenantID string // Tenant ID as a string
 }
 
-func (c *Client) VerifyToken(accessToken string) (jwt.MapClaims, error) {
-	jwksURL := fmt.Sprintf("https://login.microsoftonline.com/%s/discovery/v2.0/keys", c.TenantID)
-
-	// Fetch Microsoft's public key metadata (JWKS)
-	resp, err := http.Get(jwksURL)
+// Fetch JWKS data from the URL and parse it into a JWKS struct
+func fetchJWKS(url string) (*JWKS, error) {
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch JWKS: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// Parse the JWKS
-	var jwks struct {
-		Keys []JWK `json:"keys"`
-	}
+	var jwks JWKS
 	if err := json.NewDecoder(resp.Body).Decode(&jwks); err != nil {
 		return nil, fmt.Errorf("failed to parse JWKS: %w", err)
 	}
 
-	// Create a key function for verifying the token
+	return &jwks, nil
+}
+
+// Use this method to Verify Access Token
+// Returns Claims if token is valid else returns error
+func (c *Client) VerifyToken(accessToken string) (jwt.MapClaims, error) {
+	// Define the JWKS URL (e.g., for Azure AD)
+	jwksURL := fmt.Sprintf("https://login.microsoftonline.com/%s/discovery/v2.0/keys", c.TenantID)
+
+	// Fetch and parse the JWKS data
+	jwks, err := fetchJWKS(jwksURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse JWKS: %w", err)
+	}
+
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
 		// Ensure the token uses the RS256 signing method
 		if token.Method.Alg() != jwt.SigningMethodRS256.Alg() {
@@ -53,19 +52,18 @@ func (c *Client) VerifyToken(accessToken string) (jwt.MapClaims, error) {
 		kid := token.Header["kid"]
 		for _, key := range jwks.Keys {
 			if key.Kid == kid {
-				// Convert the key to an RSA public key and return it
-				rsaKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(key.X5c[0]))
-				if err != nil {
-					return nil, fmt.Errorf("failed to parse public key: %w", err)
+				decodedCert := DecodePEM(key.X5c[0])
+				// Parse the RSA public key from the PEM-encoded certificate
+				rsaKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(decodedCert))
+				if err == nil {
+					return rsaKey, nil
 				}
-				return rsaKey, nil
 			}
 		}
-
 		return nil, fmt.Errorf("key not found for kid: %s", kid)
+
 	}
 
-	// Parse the access token
 	token, err := jwt.ParseWithClaims(accessToken, &jwt.MapClaims{}, keyFunc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse token: %w", err)
