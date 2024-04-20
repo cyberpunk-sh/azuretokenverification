@@ -1,5 +1,10 @@
 # Azure Token Verification
-A tiny go module for verifying access token and extracting the available claims if the token is valid. Otherwise, package will throw error with proper error message.
+A tiny go module for verifying access token and extracting the available claims if the token is valid using Azure v2 flow. Otherwise, package will throw error with proper error message.
+The code does the following checks to determine if the token valid:
+  1. Issuer Check
+  2. Audience Check
+  3. Token Expiration Check
+
 
 ## Installing
 Run the following command to add this package to your project
