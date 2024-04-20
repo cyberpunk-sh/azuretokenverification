@@ -13,6 +13,8 @@ go get github.com/cyberpunk-sh/azuretokenverification
 package main
 
 import (
+	"fmt"
+
 	"github.com/cyberpunk-sh/azuretokenverification"
 )
 
@@ -20,6 +22,12 @@ func main() {
 	accessToken := ""
 	client_new := &azuretokenverification.Client{ClientID: "test", TenantID: "test"}
 	claims, err := client_new.VerifyToken(accessToken)
+	if err != nil {
+		fmt.Printf("Failed to verify access token: %v\n", err)
+	}
+
+	// If token is valid, print the claims
+	fmt.Printf("Token is valid. Claims: %+v\n", claims)
 
 }
 
