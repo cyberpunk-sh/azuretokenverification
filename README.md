@@ -8,12 +8,12 @@ The code does the following checks to determine if the token valid:
 
 ## Installing
 Run the following command to add this package to your project
-```
+```golang
 go get github.com/cyberpunk-sh/azuretokenverification
 ```
 
 ## Example
-```
+```golang
 package main
 
 import (
