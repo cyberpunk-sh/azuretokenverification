@@ -12,7 +12,7 @@ import (
 type Client struct {
 	ClientID     string // Client ID as a string
 	TenantID     string // Tenant ID as a string
-	TokenVersion string // 1.0 or 2git.0 as a string
+	TokenVersion string // 1.0 or 2.0 as a string
 }
 
 // Fetch JWKS data from the URL and parse it into a JWKS struct
