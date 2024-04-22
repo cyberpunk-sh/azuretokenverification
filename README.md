@@ -13,6 +13,7 @@ go get github.com/cyberpunk-sh/azuretokenverification
 ```
 
 ## Example
+### V2 Flow
 ```golang
 package main
 
@@ -23,8 +24,32 @@ import (
 )
 
 func main() {
-	accessToken := ""
-	client_new := &azuretokenverification.Client{ClientID: "test", TenantID: "test"}
+	accessToken := "<version 2 access token>"
+	client_new := &azuretokenverification.Client{ClientID: "client_id", TenantID: "tenant_id", TokenVersion: "2.0"}
+	claims, err := client_new.VerifyToken(accessToken)
+	if err != nil {
+		fmt.Printf("Failed to verify access token: %v\n", err)
+	}
+
+	// If token is valid, print the claims
+	fmt.Printf("Token is valid. Claims: %+v\n", claims)
+
+}
+```
+
+### V1 Flow
+```golang
+package main
+
+import (
+	"fmt"
+
+	"github.com/cyberpunk-sh/azuretokenverification"
+)
+
+func main() {
+	accessToken := "<version 1 access token>"
+	client_new := &azuretokenverification.Client{ClientID: "api://client_id", TenantID: "tenant_id", TokenVersion: "1.0"}
 	claims, err := client_new.VerifyToken(accessToken)
 	if err != nil {
 		fmt.Printf("Failed to verify access token: %v\n", err)
