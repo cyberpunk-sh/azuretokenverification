@@ -10,8 +10,9 @@ import (
 )
 
 type Client struct {
-	ClientID string // Client ID as a string
-	TenantID string // Tenant ID as a string
+	ClientID     string // Client ID as a string
+	TenantID     string // Tenant ID as a string
+	TokenVersion string // 1.0 or 2git.0 as a string
 }
 
 // Fetch JWKS data from the URL and parse it into a JWKS struct
@@ -79,7 +80,10 @@ func (c *Client) VerifyToken(accessToken string) (*jwt.MapClaims, error) {
 	if !ok {
 		return nil, fmt.Errorf("failed to cast claims to MapClaims")
 	}
-	expectedIssuer := fmt.Sprintf("https://sts.windows.net/%s/", c.TenantID)
+	expectedIssuer, isserr := generateIssuer(c.TokenVersion, c.TenantID)
+	if isserr != nil {
+		return nil, isserr
+	}
 
 	issuer, _ := claims.GetIssuer()
 	if issuer != expectedIssuer {
@@ -107,4 +111,14 @@ func isAudiance(audiances jwt.ClaimStrings, client_id string) bool {
 		}
 	}
 	return false
+}
+
+func generateIssuer(token_version string, tenant_id string) (string, error) {
+	if token_version == "1.0" {
+		return fmt.Sprintf("https://sts.windows.net/%s/", tenant_id), nil
+	} else if token_version == "2.0" {
+		return fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", tenant_id), nil
+	} else {
+		return "", fmt.Errorf("invalid token version")
+	}
 }
