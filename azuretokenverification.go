@@ -33,7 +33,7 @@ func fetchJWKS(url string) (*JWKS, error) {
 
 // Use this method to Verify Access Token
 // Returns Claims if token is valid else returns error
-func (c *Client) VerifyToken(accessToken string) (*jwt.MapClaims, error) {
+func (c *Client) VerifyToken(accessToken string) (jwt.MapClaims, error) {
 	// Define the JWKS URL (e.g., for Azure AD)
 	jwksURL := fmt.Sprintf("https://login.microsoftonline.com/%s/discovery/v2.0/keys", c.TenantID)
 
@@ -101,7 +101,7 @@ func (c *Client) VerifyToken(accessToken string) (*jwt.MapClaims, error) {
 	}
 
 	// Token is valid and verified
-	return claims, nil
+	return jwt.MapClaims(*claims), nil
 }
 
 func isAudiance(audiances jwt.ClaimStrings, client_id string) bool {
